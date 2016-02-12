@@ -129,11 +129,23 @@ class Solution
   # Lecture 5: $unwind
   #
   def avg_family_time last_name
-    #place solution here
+    @coll.find.aggregate([
+      { :$match => { last_name: last_name } },
+      { :$group => { _id: '$last_name',
+                    avg_time: { :$avg => '$secs' },
+                    numbers: { :$push => '$number' } } }
+    ])
   end
 
   def number_goal last_name
-    #place solution here
+    @coll.find.aggregate([
+      { :$match => { last_name: last_name } },
+      { :$group => { _id: '$last_name',
+                    avg_time: { :$avg => '$secs' },
+                    numbers: { :$push => '$number' } } },
+      { :$unwind => '$numbers' },
+      { :$project => { _id: 0, avg_time: 1, number: '$numbers', last_name: '$_id' } }
+    ])
   end
 
 end
