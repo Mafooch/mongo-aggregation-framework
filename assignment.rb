@@ -15,7 +15,7 @@ class Solution
   # using the default.
   def self.mongo_client
     url=ENV['MONGO_URL'] ||= MONGO_URL
-    database=ENV['MONGO_DATABASE'] ||= MONGO_DATABASE 
+    database=ENV['MONGO_DATABASE'] ||= MONGO_DATABASE
     db = Mongo::Client.new(url)
     @@db=db.use(database)
   end
@@ -26,20 +26,18 @@ class Solution
     collection=ENV['RACE_COLLECTION'] ||= RACE_COLLECTION
     return mongo_client[collection]
   end
-  
+
   # helper method that will load a file and return a parsed JSON document as a hash
-  def self.load_hash(file_path) 
+  def self.load_hash(file_path)
     file=File.read(file_path)
     JSON.parse(file)
   end
-
   # initialization method to get reference to the collection for instance methods to use
   def initialize
     @coll=self.class.collection
   end
-
   # drop the current contents of the collection and reload from data file
-  def self.reset(file_path) 
+  def self.reset(file_path)
     self.collection.delete_many({})
     hash=self.load_hash(file_path)
     self.collection.insert_many(hash)
@@ -50,21 +48,31 @@ class Solution
   #
 
     # use irb shell
-
-  #
+    # db[:zips].find.aggregate([{:$group => { _id: { city: '$city', state: '$state' }, zips: { :$push => '$_id' }}}, { :$limit => 15 }])
+    # db[:zips].find.aggregate([:$group => { _id: 0, zips: { :$push => "$state" }}]).first
+    # db[:zips].find.aggregate([:$group => { _id: 0, zips: { :$addToSet => "$state" } }]).first
+    # db[:zips].find.aggregate([:$match => { state: "DE" }]).first
+    ## unwind ##
+    # db[:zips].find.aggregate([{ :$match => { city: "ELMIRA" } }, { :$group => { _id: { city: "$city", state: "$state" }, zips: { :$addToSet => "$_id" } } }, { :$unwind => "$zips" }]).each { |r| pp r }
   # Lecture 2: $project
   #
 
   def racer_names
-    #place solution here
+    @coll.find.aggregate(
+      [:$project => { _id: 0, first_name: 1, last_name: 1 }]
+      )
   end
 
-  def id_number_map 
-    #place solution here
+  def id_number_map
+    @coll.find.aggregate(
+      [:$project => { number: 1 }]
+    )
   end
 
   def concat_names
-    #place solution here
+    @coll.find.aggregate(
+      [:$project => { _id: 0, number: 1, name: { :$concat => ['$last_name', ', ', '$first_name'] } }]
+    )
   end
 
   #
@@ -102,7 +110,7 @@ class Solution
   def avg_family_time last_name
     #place solution here
   end
-  
+
   def number_goal last_name
     #place solution here
   end
