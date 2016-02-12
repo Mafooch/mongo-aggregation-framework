@@ -80,16 +80,26 @@ class Solution
     #place solution here
   #
 
-  def race_group_results
-    #place solution here
+  def group_times
+    @coll.find.aggregate([
+      :$group => { _id: { age: '$group', gender: '$gender' },
+                  runners: { :$sum => 1 },
+                  fastest_time: { :$min => '$secs' } }
+      ])
   end
 
   def group_last_names
-    #place solution here
+    @coll.find.aggregate([
+      :$group => { _id: { age: '$group', gender: '$gender' },
+                  last_names: { :$push => '$last_name' } }
+    ])
   end
 
   def group_last_names_set
-    #place solution here
+    @coll.find.aggregate([
+      :$group => { _id: { age: '$group', gender: '$gender' },
+                  last_names: { :$addToSet => '$last_name' } }
+    ])
   end
 
   #
